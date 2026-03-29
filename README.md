@@ -2,9 +2,37 @@
 
 ## Project Structure
 
-- UCS Satellite Database Interactive Visualization
-   - [List other folders/files if available]
+```
+UCS Satellite Database Interactive Visualization/
+├── app.R
+└── data/
+```
 
-## Other Sections
+## Features
+- Interactive data visualization of satellite information.
+- User-friendly interface for analyzing satellite data.
 
-[Keep other sections the same as in the original README]
+## Technologies Used
+- **R**: [R Language](https://www.r-project.org/)
+- **Shiny**: [Shiny Web Framework](https://shiny.rstudio.com/)
+- **ggplot2**: [ggplot2 for Data Visualization](https://ggplot2.tidyverse.org/)
+
+## Getting Started
+To get started with the UCS Satellite Database Interactive Visualization project, clone the repository and install the required packages:
+
+```bash
+git clone https://github.com/Kashfy/UCS-Satellite-Database-Interactive-Visualization.git
+cd UCS-Satellite-Database-Interactive-Visualization
+# Install packages
+install.packages(c('shiny', 'ggplot2'))
+```
+
+## Usage
+Run the application using R:
+
+```R
+shiny::runApp('app.R')
+```
+
+## Author/Contributions
+This project is maintained by [Kashfy](https://github.com/Kashfy). Contributions are welcome! Please feel free to submit a pull request or raise issues.
