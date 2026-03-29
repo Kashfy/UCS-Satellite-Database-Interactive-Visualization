@@ -1,13 +1,5 @@
 # UCS Satellite Database Interactive Visualization
 
-## Project Structure
-
-```
-UCS Satellite Database Interactive Visualization/
-├── app.R
-└── data/
-```
-
 ## Features
 - Interactive data visualization of satellite information.
 - User-friendly interface for analyzing satellite data.
@@ -35,4 +27,4 @@ shiny::runApp('app.R')
 ```
 
 ## Author/Contributions
-This project is maintained by [Kashfy](https://github.com/Kashfy). Contributions are welcome! Please feel free to submit a pull request or raise issues.
+This project was done by [Kashfy](https://github.com/Kashfy).
