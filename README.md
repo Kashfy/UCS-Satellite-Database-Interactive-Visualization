@@ -19,12 +19,5 @@ cd UCS-Satellite-Database-Interactive-Visualization
 install.packages(c('shiny', 'ggplot2'))
 ```
 
-## Usage
-Run the application using R:
-
-```R
-shiny::runApp('app.R')
-```
-
 ## Author/Contributions
 This project was done by [Kashfy](https://github.com/Kashfy).
