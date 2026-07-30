@@ -41,6 +41,11 @@ To produce the static site yourself:
 ```r
 install.packages("shinylive")
 shinylive::export("UCS Satellite Database Interactive Visualization", "_site")
+# The User Guide link points at a real file on the server, because the app's own
+# files are only reachable through shinylive's service worker and the browser's
+# download manager bypasses it.
+file.copy("UCS Satellite Database Interactive Visualization/www/User_Guide.docx",
+          "_site/User_Guide.docx", overwrite = TRUE)
 httpuv::runStaticServer("_site")
 ```
 

@@ -93,7 +93,17 @@ ui <- fluidPage(
       "UCS Satellite Database Interactive Visualization",
       div(
         style = "float: right; font-size: 14px; margin-top: 5px;",
-        tags$a(href = "User_Guide.docx", "Download User Guide", download = TRUE)
+        # Two things matter here:
+        #  - download must be the filename to save as. download = TRUE renders
+        #    as download="TRUE", so the browser tried to save a file called
+        #    "TRUE" and gave up.
+        #  - the href must point at a real file on the server, not at one of
+        #    the app's own files. Under shinylive the app's files live only
+        #    inside a service-worker virtual path, and the browser's download
+        #    manager fetches outside the service worker, so it 404s there.
+        #    "../User_Guide.docx" resolves to the site root on GitHub Pages and
+        #    to the www/ copy under a local runApp().
+        tags$a(href = "../User_Guide.docx", "Download User Guide", download = "User_Guide.docx")
       )
     )
   ),
@@ -210,7 +220,7 @@ ui <- fluidPage(
                p("This data spans from November 15 1973 to December 28 2022", style = "text-align: center; font-style: italic"),
                div(
                  style = "text-align: center; margin-top: 10px;",
-                 tags$a(href = "User_Guide.docx", "Need help? Download the User Guide", download = TRUE)
+                 tags$a(href = "../User_Guide.docx", "Need help? Download the User Guide", download = "User_Guide.docx")
                )
         )
       ),

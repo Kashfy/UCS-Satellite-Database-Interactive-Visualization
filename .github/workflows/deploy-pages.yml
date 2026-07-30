@@ -67,6 +67,13 @@ jobs:
         run: shinylive::export(Sys.getenv("APP_DIR"), "_site")
         shell: Rscript {0}
 
+      # The app's own files are only reachable through shinylive's service
+      # worker, and the browser's download manager bypasses it. So the User
+      # Guide has to exist as a real file at the site root for its link
+      # (../User_Guide.docx) to actually download.
+      - name: Publish the User Guide as a real static file
+        run: cp "$APP_DIR/www/User_Guide.docx" _site/User_Guide.docx
+
       - name: Disable Jekyll processing
         run: touch _site/.nojekyll
 
