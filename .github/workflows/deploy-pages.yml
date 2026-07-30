@@ -30,6 +30,15 @@ jobs:
         with:
           use-public-rspm: true
 
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      # The embedded copies of the documents are committed so a local runApp()
+      # works without pandoc; regenerating here keeps the deployed copies in
+      # sync with the .docx sources. webR has no pandoc, so this cannot happen
+      # inside the app.
+      - name: Render the documents to HTML
+        run: Rscript tools/render-docs.R
+
       # `archive` is only a Suggests of shinylive, but export() needs it to
       # unpack the asset bundle. pak is used so libarchive's system-level
       # dependency gets installed along with it.
@@ -68,11 +77,11 @@ jobs:
         shell: Rscript {0}
 
       # The app's own files are only reachable through shinylive's service
-      # worker, and the browser's download manager bypasses it. So the User
-      # Guide has to exist as a real file at the site root for its link
-      # (../User_Guide.docx) to actually download.
-      - name: Publish the User Guide as a real static file
-        run: cp "$APP_DIR/www/User_Guide.docx" _site/User_Guide.docx
+      # worker, and the browser's download manager bypasses it. So each
+      # downloadable document has to exist as a real file at the site root for
+      # its link (../<name>.docx) to actually download.
+      - name: Publish the documents as real static files
+        run: cp "$APP_DIR"/www/*.docx _site/
 
       - name: Disable Jekyll processing
         run: touch _site/.nojekyll

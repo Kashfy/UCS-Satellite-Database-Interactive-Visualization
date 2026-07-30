@@ -86,8 +86,58 @@ all_orbits <- unique(satellite_data$Class.of.Orbit)
 all_orbits <- all_orbits[!is.na(all_orbits) & all_orbits != ""]
 all_orbits <- sort(all_orbits) 
 
-# Define UI 
+# Embedded documents.
+#
+# These are HTML fragments produced from the .docx files by tools/render-docs.R
+# at build time. They cannot be converted here: the deployed site runs R under
+# WebAssembly, which has no pandoc. A document that has not been added yet just
+# shows a short note instead of an empty tab.
+document_panel <- function(html_file, title, docx_name, missing_note) {
+  body <- if (file.exists(html_file)) {
+    includeHTML(html_file)
+  } else {
+    div(class = "doc-missing", missing_note)
+  }
+
+  div(
+    class = "doc-page",
+    div(
+      class = "doc-toolbar",
+      h3(title, style = "display: inline-block; margin: 0;"),
+      if (file.exists(file.path("www", docx_name))) {
+        tags$a(
+          class = "doc-download",
+          href = paste0("../", docx_name),
+          download = docx_name,
+          paste0("Download ", docx_name)
+        )
+      }
+    ),
+    div(class = "doc-body", body)
+  )
+}
+
+# Define UI
 ui <- fluidPage(
+  tags$head(tags$style(HTML("
+    .doc-page { max-width: 900px; margin: 0 auto; padding: 10px 20px 60px; }
+    .doc-toolbar { display: flex; align-items: center; justify-content: space-between;
+                   gap: 16px; flex-wrap: wrap; padding: 14px 0 10px;
+                   border-bottom: 1px solid #ddd; margin-bottom: 18px; }
+    .doc-body { font-size: 15px; line-height: 1.65; }
+    .doc-body h1, .doc-body h2, .doc-body h3 { margin-top: 1.6em; margin-bottom: .5em;
+                   line-height: 1.3; }
+    .doc-body h2 { font-size: 1.25em; border-bottom: 1px solid #eee; padding-bottom: .25em; }
+    .doc-body ul { padding-left: 1.4em; }
+    .doc-body li > p { margin: .25em 0; }
+    .doc-body img, .doc-body table { max-width: 100%; }
+    .doc-body table { border-collapse: collapse; margin: 1em 0; }
+    .doc-body th, .doc-body td { border: 1px solid #ddd; padding: 6px 10px; }
+    .doc-missing { color: #777; font-style: italic; padding: 30px 0; }
+    /* Long documents scroll within the tab rather than stretching the page. */
+    .doc-scroll { max-height: 75vh; overflow-y: auto; }
+  "))),
+
   titlePanel(
     div(
       "UCS Satellite Database Interactive Visualization",
@@ -107,7 +157,13 @@ ui <- fluidPage(
       )
     )
   ),
-  
+
+  tabsetPanel(
+    id = "mainTabs",
+
+    tabPanel(
+      "Dashboard",
+
   sidebarLayout(
     sidebarPanel(
       h4("Filters"),
@@ -215,17 +271,43 @@ ui <- fluidPage(
       
       # Notifying Users of the Date Range
       fluidRow(
-        column(12, 
+        column(12,
                hr(),
                p("This data spans from November 15 1973 to December 28 2022", style = "text-align: center; font-style: italic"),
                div(
                  style = "text-align: center; margin-top: 10px;",
-                 tags$a(href = "../User_Guide.docx", "Need help? Download the User Guide", download = "User_Guide.docx")
+                 actionLink("goToGuide", "Need help? Read the User Guide")
                )
         )
       ),
-      
-      width = 9  
+
+      width = 9
+    )
+  )
+
+    ),
+
+    tabPanel(
+      "Report",
+      document_panel(
+        html_file = "report.html",
+        title = "Project Report",
+        docx_name = "Report.docx",
+        missing_note = paste(
+          "The report has not been added yet. Drop Report.docx into the app's",
+          "www/ folder and it will appear here automatically on the next build."
+        )
+      )
+    ),
+
+    tabPanel(
+      "User Guide",
+      document_panel(
+        html_file = "user_guide.html",
+        title = "User Guide",
+        docx_name = "User_Guide.docx",
+        missing_note = "The user guide has not been generated yet."
+      )
     )
   )
 )
@@ -233,6 +315,11 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output, session) {
   
+  # Footer link jumps to the User Guide tab rather than downloading it.
+  observeEvent(input$goToGuide, {
+    updateTabsetPanel(session, "mainTabs", selected = "User Guide")
+  })
+
   # Create a reactive value to track validation status
   validSelection <- reactive({
     length(input$orbitClass) > 0

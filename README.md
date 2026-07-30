@@ -9,6 +9,23 @@
 - User-friendly interface for analyzing satellite data.
 - Filter by launch date range, country of operator, user type, class of orbit, and purpose.
 - A world choropleth of satellites per country, plus a per-year launch trend line for the top countries.
+- **Dashboard / Report / User Guide** tabs, with the documents readable in the browser as well as downloadable.
+
+## Embedded Documents
+The Report and User Guide tabs render the Word documents as HTML. Conversion happens at
+build time via [`tools/render-docs.R`](tools/render-docs.R) — it cannot happen inside the
+app, because the deployed site runs R under WebAssembly, which has no pandoc.
+
+To add or update a document:
+
+1. Put the `.docx` in `UCS Satellite Database Interactive Visualization/www/`
+   (the report must be named `Report.docx`).
+2. Run `Rscript tools/render-docs.R` (needs pandoc: `brew install pandoc`).
+3. Commit both the `.docx` and the generated `.html`.
+
+CI re-runs the conversion on every deploy, so the published copies never drift from the
+`.docx` sources. The generated HTML is committed as well so a local `runApp()` works
+without pandoc installed.
 
 ## Technologies Used
 - **R**: [R Language](https://www.r-project.org/)

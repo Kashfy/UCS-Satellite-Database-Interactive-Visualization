@@ -1,0 +1,73 @@
+<p><strong><u>UCS Satellite Database Interactive Visualization User Guide</u></strong></p>
+<p>The dashboard contains five main controls:</p>
+<ul>
+<li><p>Date Range Selection</p></li>
+<li><p>Country Selection</p></li>
+<li><p>User Type Selection</p></li>
+<li><p>Class of Orbit Selection</p></li>
+<li><p>Purpose Selection</p></li>
+</ul>
+<h2 id="date-range-selection">1. Date Range Selection</h2>
+<ul>
+<li><p>Contains Start Date and End Date inputs.</p></li>
+<li><p>Start Date: Earliest date allowed is 11/15/1975.</p></li>
+<li><p>End Date: Latest date allowed is 12/28/2022.</p></li>
+<li><p>Program visualizes data between the selected dates.</p></li>
+<li><p>Visualizations update dynamically if the date range changes.</p></li>
+</ul>
+<h2 id="country-selection">2. Country Selection</h2>
+<ul>
+<li><p>&quot;Select All Countries&quot; is checked by default.</p></li>
+<li><p>To select specific countries:</p></li>
+<li><p>1. Uncheck &#39;Select All Countries&#39;.</p></li>
+<li><p>2. Remove default countries (5 shown initially) by clicking the textbox and pressing Backspace.</p></li>
+<li><p>3. Type in the countries you want to visualize.</p></li>
+<li><p>Line Plot Limit: Displays a maximum of 10 countries for readability.</p></li>
+<li><p>First 10 entered countries appear on the graph.</p></li>
+<li><p>Map updates for more than 10 countries.</p></li>
+<li><p>If no countries are selected and &#39;Select All&#39; is unchecked:</p></li>
+<li><p>- Map will be blank.</p></li>
+<li><p>- Graph will display: &quot;Error: &#39;from&#39; must be a finite number&quot;.</p></li>
+</ul>
+<h2 id="user-type-selection">3. User Type Selection</h2>
+<ul>
+<li><p>Default: &quot;All&quot; (visualizes all user types).</p></li>
+<li><p>Options: Civil, Commercial, Government, Military.</p></li>
+<li><p>Selecting a type filters and visualizes only that user type&#39;s data.</p></li>
+</ul>
+<h2 id="class-of-orbit-selection">4. Class of Orbit Selection</h2>
+<ul>
+<li><p>Default: All orbit classes selected.</p></li>
+<li><p>Classes:</p></li>
+<li><p>- Elliptical: 1,000 km (lowest) to 35,756 km (highest) altitude.</p></li>
+<li><p>- GEO (Geostationary Orbit): Satellites move east–west along Earth’s equator.</p></li>
+<li><p>- LEO (Low Earth Orbit): Altitude under 2,000 km, within Van Allen belt protection; no fixed path.</p></li>
+<li><p>- MEO (Medium Earth Orbit): Altitude 8,000–20,000 km; no fixed path.</p></li>
+<li><p>Users can select/deselect orbit classes.</p></li>
+<li><p>If none are selected, an error will appear instructing the user to select at least one orbit class.</p></li>
+</ul>
+<h2 id="purpose-selection">5. Purpose Selection</h2>
+<ul>
+<li><p>Default: &quot;Select All Purposes&quot; checked.</p></li>
+<li><p>To filter:</p></li>
+<li><p>1. Uncheck the box.</p></li>
+<li><p>2. Use the textbox to add/remove satellite purposes.</p></li>
+<li><p>If no purposes are selected and &#39;Select All&#39; is unchecked:</p></li>
+<li><p>- Map will be blank.</p></li>
+<li><p>- Graph will display: &quot;Error: &#39;from&#39; must be a finite number&quot;.</p></li>
+</ul>
+<h2 id="additional-features">Additional Features</h2>
+<ul>
+<li><p>Date Format Conversion: Original dataset uses day-month-year format; script converts it to month/day/year for easier input.</p></li>
+<li><p>Country Name Mapping: Recognizes multiple variations of a country’s name (e.g., UK, United Kingdom, Great Britain, England/UK → UK) to prevent data loss.</p></li>
+<li><p>Dynamic Updates: Any change in input instantly refreshes visualizations.</p></li>
+<li><p>Example: Changing User Type to Commercial and Orbit Classes to MEO + LEO may cause a short delay while data is re-filtered.</p></li>
+</ul>
+<p>Sources:</p>
+<ul>
+<li><p><a href="https://www.satnow.com/community/what-is-an-highly-elliptical-orbit">https://www.satnow.com/community/what-is-an-highly-elliptical-orbit</a></p></li>
+<li><p><a href="https://www.esa.int/Enabling_Support/Space_Transportation/Types_of_orbits#MEO">https://www.esa.int/Enabling_Support/Space_Transportation/Types_of_orbits#MEO</a></p></li>
+<li><p><a href="https://www.cst.gov.sa/en/ntn/Pages/space-borne.aspx">https://www.cst.gov.sa/en/ntn/Pages/space-borne.aspx</a></p></li>
+<li><p><a href="https://www.kaggle.com/datasets/sujaykapadnis/every-known-satellite-orbiting-earth">https://www.kaggle.com/datasets/sujaykapadnis/every-known-satellite-orbiting-earth</a></p></li>
+<li></li>
+</ul>
