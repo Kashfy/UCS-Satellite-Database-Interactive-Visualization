@@ -30,8 +30,13 @@ jobs:
         with:
           use-public-rspm: true
 
+      # `archive` is only a Suggests of shinylive, but export() needs it to
+      # unpack the asset bundle. pak is used so libarchive's system-level
+      # dependency gets installed along with it.
       - name: Install build tooling
-        run: install.packages(c("shinylive", "renv", "pak"))
+        run: |
+          install.packages("pak")
+          pak::pak(c("shinylive", "renv", "archive"))
         shell: Rscript {0}
 
       # shinylive::export() resolves the dependency tree via find.package(), so
