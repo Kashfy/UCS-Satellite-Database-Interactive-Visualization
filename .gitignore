@@ -1,0 +1,12 @@
+# shinylive build output
+_site/
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Editor / tooling
+.claude/
+.DS_Store

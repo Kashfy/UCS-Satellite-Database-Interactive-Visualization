@@ -1,0 +1,80 @@
+name: Deploy shinylive app to GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/interactive-map-github-pages-230570
+  workflow_dispatch:
+
+# Least privilege needed to publish to Pages via the artifact + OIDC flow.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-flight deploy finish rather than cancelling it mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  APP_DIR: UCS Satellite Database Interactive Visualization
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install build tooling
+        run: install.packages(c("shinylive", "renv", "pak"))
+        shell: Rscript {0}
+
+      # shinylive::export() resolves the dependency tree via find.package(), so
+      # the app's packages must be installed natively here even though what
+      # actually ships to the browser are their WebAssembly builds.
+      - name: Install app dependencies
+        run: pak::pak(unique(renv::dependencies(Sys.getenv("APP_DIR"))$Package))
+        shell: Rscript {0}
+
+      - name: Resolve shinylive asset version
+        id: assets
+        run: |
+          version=$(Rscript -e 'cat(as.character(shinylive::assets_version()))')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Using shinylive assets $version"
+
+      # The webR asset bundle is ~1GB unpacked and is the slowest part of the
+      # build by a wide margin, so cache it across runs.
+      - name: Cache shinylive assets
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/shinylive
+          key: shinylive-assets-${{ runner.os }}-${{ steps.assets.outputs.version }}
+
+      # Downloads the WASM builds of shiny/ggplot2/dplyr/maps from
+      # repo.r-wasm.org and writes a fully static site into _site.
+      - name: Export app to static site
+        run: shinylive::export(Sys.getenv("APP_DIR"), "_site")
+        shell: Rscript {0}
+
+      - name: Disable Jekyll processing
+        run: touch _site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
