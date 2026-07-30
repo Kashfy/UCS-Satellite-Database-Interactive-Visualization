@@ -22,8 +22,16 @@ satellite_data$Country.Simple <- trimws(satellite_data$Country.Simple)
 # Class of Orbit
 satellite_data$Class.of.Orbit <- toupper(as.character(satellite_data$Class.of.Orbit))
 
-# Get the map data to determine correct region names
-world_map_regions <- unique(map_data("world")$region)
+# Get the map data once, at startup. The polygons never change, so building
+# them again inside renderPlot made every filter change pay for it a second time.
+world_map <- map_data("world")
+world_map_regions <- unique(world_map$region)
+
+# Cache for the rendered plots. This is created explicitly rather than relying
+# on bindCache()'s default cache = "app": under webR (the WebAssembly build the
+# GitHub Pages site runs on) that default is not configured, and bindCache
+# fails with "`cache` must either be "app", "session", or a cache object".
+plot_cache <- cachem::cache_mem(max_size = 100 * 1024^2)
 
 # Create a country mapping dictionary to match exact names in the maps package
 country_mapping <- list(
@@ -236,56 +244,76 @@ server <- function(input, output, session) {
     }
   })
   
+  # The whole filter state as one value, debounced so that a burst of changes
+  # (ticking several orbit classes in a row, typing a date) settles into a
+  # single re-render instead of one per click.
+  #
+  # This is deliberately also the cache key for both plots below. Keying the
+  # cache on the raw inputs instead would break the app: the key would change
+  # the instant an input did, so a render would run against the not-yet-updated
+  # debounced data and store that stale image under the new key. The debounced
+  # value would then arrive without changing the key, and the stale image would
+  # be served from cache forever.
+  filter_state <- reactive({
+    list(startDate = input$startDate,
+         endDate = input$endDate,
+         selectAllCountries = input$selectAllCountries,
+         countries = input$countries,
+         users = input$users,
+         orbitClass = input$orbitClass,
+         selectAllPurposes = input$selectAllPurposes,
+         purposes = input$purposes)
+  }) %>% debounce(300)
+
   # Reactive function to filter data based on inputs
   filtered_data <- reactive({
+    f <- filter_state()
+
     # Return NULL if validation fails
-    if (!validSelection()) {
+    if (length(f$orbitClass) == 0) {
       return(NULL)
     }
-    
+
     data <- satellite_data
-    
+
     # Filter by date
     data <- data %>%
-      filter(Date.of.Launch >= input$startDate & Date.of.Launch <= input$endDate)
-    
+      filter(Date.of.Launch >= f$startDate & Date.of.Launch <= f$endDate)
+
     # Filter by countries
-    if (!input$selectAllCountries) {
+    if (!f$selectAllCountries) {
       data <- data %>%
-        filter(Country.Simple %in% input$countries)
+        filter(Country.Simple %in% f$countries)
     }
-    
+
     # Filter by users using radio buttons
-    if (input$users != "all") {
+    if (f$users != "all") {
       data <- data %>%
-        filter(Users == input$users)
+        filter(Users == f$users)
     }
-    
+
     # Filter by orbit class using checkboxes
     data <- data %>%
-      filter(Class.of.Orbit %in% input$orbitClass)
-    
+      filter(Class.of.Orbit %in% f$orbitClass)
+
     # Filter by purposes
-    if (!input$selectAllPurposes) {
+    if (!f$selectAllPurposes) {
       data <- data %>%
-        filter(Purpose %in% input$purposes)
+        filter(Purpose %in% f$purposes)
     }
-    
+
     data
   })
-  
+
   # World heatmap
   output$worldHeatmap <- renderPlot({
     # Check if we have valid data
     req(filtered_data())
-    
-    # Get world map data
-    world_map <- map_data("world")
-    
+
     # Calculate satellite counts by country (using operator/owner)
     country_counts <- filtered_data() %>%
       group_by(Country.Map) %>%
-      summarise(Count = n()) %>%
+      summarise(Count = n(), .groups = "drop") %>%
       filter(!is.na(Country.Map))
     
     # Join with world map data
@@ -303,28 +331,32 @@ server <- function(input, output, session) {
             axis.ticks = element_blank(),
             panel.grid = element_blank(),
             plot.margin = margin(0, 0, 0, 0))
-  })
-  
+  }) %>% bindCache(filter_state(), cache = plot_cache)
+
   # Line graph showing superimposed graph for selected countries
   output$timeSeries <- renderPlot({
     # Check if we have valid data
     req(filtered_data())
     
+    # Read the same debounced state the cache key uses, so the rendered image
+    # always matches the key it gets stored under.
+    f <- filter_state()
+
     # Get selected countries or top countries if all selected
-    if (input$selectAllCountries) {
+    if (f$selectAllCountries) {
       # Get top 8 countries by total satellites
       top_countries <- filtered_data() %>%
         group_by(Country.Simple) %>%
-        summarise(Total = n()) %>%
+        summarise(Total = n(), .groups = "drop") %>%
         arrange(desc(Total)) %>%
         head(8) %>%
         pull(Country.Simple)
-      
+
       time_data <- filtered_data() %>%
         filter(Country.Simple %in% top_countries)
     } else {
       # Limit to max 10 countries for readability
-      selected_countries <- head(input$countries, 10)
+      selected_countries <- head(f$countries, 10)
       time_data <- filtered_data() %>%
         filter(Country.Simple %in% selected_countries)
     }
@@ -332,10 +364,15 @@ server <- function(input, output, session) {
     # Aggregate by year and country
     time_data <- time_data %>%
       group_by(Year, Country.Simple) %>%
-      summarise(Count = n()) %>%
+      summarise(Count = n(), .groups = "drop") %>%
       filter(!is.na(Year) & !is.na(Country.Simple))
-    
-    # Create superimposed line graph 
+
+    # A filter combination can legitimately match nothing. Without this, the
+    # seq() in scale_x_continuous below gets min/max of an empty vector
+    # (Inf/-Inf) and the plot errors out instead of just showing nothing.
+    req(nrow(time_data) > 0)
+
+    # Create superimposed line graph
     ggplot(time_data, aes(x = Year, y = Count, color = Country.Simple, group = Country.Simple)) +
       geom_line(size = 1) +
       geom_point(size = 1.5) +
@@ -348,7 +385,7 @@ server <- function(input, output, session) {
                                       by = 5)) +
       theme(legend.position = "right",
             plot.margin = margin(0, 0, 0, 0))
-  })
+  }) %>% bindCache(filter_state(), cache = plot_cache)
 }
 
 # Run the application
