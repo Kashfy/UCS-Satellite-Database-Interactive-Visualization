@@ -288,19 +288,6 @@ ui <- fluidPage(
     ),
 
     tabPanel(
-      "Report",
-      document_panel(
-        html_file = "report.html",
-        title = "Project Report",
-        docx_name = "Report.docx",
-        missing_note = paste(
-          "The report has not been added yet. Drop Report.docx into the app's",
-          "www/ folder and it will appear here automatically on the next build."
-        )
-      )
-    ),
-
-    tabPanel(
       "User Guide",
       document_panel(
         html_file = "user_guide.html",

@@ -12,8 +12,7 @@
 app_dir <- "UCS Satellite Database Interactive Visualization"
 
 docs <- list(
-  list(src = file.path(app_dir, "www", "User_Guide.docx"), out = file.path(app_dir, "user_guide.html")),
-  list(src = file.path(app_dir, "www", "Report.docx"),     out = file.path(app_dir, "report.html"))
+  list(src = file.path(app_dir, "www", "User_Guide.docx"), out = file.path(app_dir, "user_guide.html"))
 )
 
 if (Sys.which("pandoc") == "") {
@@ -25,8 +24,7 @@ for (d in docs) {
     message("skip (not present): ", d$src)
     next
   }
-  # Images are extracted alongside so figures in the report survive the
-  # conversion; --embed-resources inlines them so a single file is enough.
+  # --embed-resources inlines any images so a single .html file is enough.
   status <- system2("pandoc", c(
     shQuote(d$src),
     "--from", "docx",
