@@ -3,7 +3,7 @@ name: Deploy shinylive app to GitHub Pages
 on:
   push:
     branches:
-      - claude/interactive-map-github-pages-230570
+      - interactive-site
   workflow_dispatch:
 
 # Least privilege needed to publish to Pages via the artifact + OIDC flow.
